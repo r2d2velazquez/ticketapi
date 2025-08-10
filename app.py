@@ -4,6 +4,7 @@ import json
 import logging
 from datetime import datetime
 from flask import Flask, request, jsonify, send_file
+from flask_cors import CORS
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait, Select
@@ -12,6 +13,7 @@ from selenium.webdriver.chrome.options import Options
 from selenium.common.exceptions import TimeoutException, NoSuchElementException
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.action_chains import ActionChains
+from selenium.webdriver.chrome.service import Service
 import requests
 from pathlib import Path
 import zipfile #Create a zip file for PDF and XML
@@ -33,6 +35,7 @@ logger = logging.getLogger(__name__)
 
 
 app = Flask(__name__)
+CORS(app)
 
 # Thread-safe tracking
 DOWNLOADS_DIR = Path.home() / 'Downloads'
@@ -106,7 +109,10 @@ class ServiceStore:
         chrome_options.add_argument("--disable-extensions")
         chrome_options.add_argument("--disable-plugins")
 
-        driver = webdriver.Chrome(options=chrome_options)
+        # Railway provides chromedriver at this path
+        service = Service('/usr/bin/chromedriver')
+        driver = webdriver.Chrome(service=service, options=chrome_options)
+        #driver = webdriver.Chrome(options=chrome_options)
         driver.execute_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
 
         return driver
